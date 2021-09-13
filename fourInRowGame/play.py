@@ -12,8 +12,8 @@ for i in range(0,100):  # This loops takes about 15 seconds on my computer
     # for i in range(0,50):
     while not game.isFinished(board):
         if game.isHumTurn(board):
-            game.inputRandom(board)
-            # board.game.inputMove(board)
+            # game.inputRandom(board)
+            game.inputMove(board)
             # board = alphaBetaPruning.go(board)
         else:
             board = alphaBetaPruning.go(board)
