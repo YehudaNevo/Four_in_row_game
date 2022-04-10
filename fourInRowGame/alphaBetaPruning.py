@@ -1,19 +1,21 @@
-import game
+import Game
 
+# depth -> wll search the best move by the val of the state, depth mean how many moves foreword wll look
+# more depth mean better execution but slower
 DEPTH = 2
 
 
 # made the next move:
-# get board and return the new board after the move
-def go(gm):
+# get the state ( board )  and return the new board after the move
+def go(state):
     # if it humen turn choose the board with the minimum value
-    if game.isHumTurn(gm):
-        obj = abmin(gm, DEPTH, game.LOSS - 1, game.VICTORY + 1)[1]
+    if Game.isHumTurn(state):
+        obj = abmin(state, DEPTH, Game.LOSS - 1, Game.VICTORY + 1)[1]
         return obj
 
     else:  # it computer turn, choose the maximunm value
         print("Turn of agent")
-        obj = abmax(gm, DEPTH, game.LOSS - 1, game.VICTORY + 1)[1]
+        obj = abmax(state, DEPTH, Game.LOSS - 1, Game.VICTORY + 1)[1]
         return obj
 
 
@@ -26,14 +28,14 @@ def go(gm):
 
 def abmax(gm, d, a, b):
     # if depth is 0 we finished are calculation so we retuen the current value 
-    if d == 0 or game.isFinished(gm):
-        return [game.value(gm), gm]
+    if d == 0 or Game.isFinished(gm):
+        return [Game.state_value(gm), gm]
 
     # find the state with the max value
     # intializing the max val for -infinite
     v = float("-inf")
     # ns = list of all the possible next states 
-    ns = game.getNext(gm)
+    ns = Game.getNext(gm)
     # initializing the bestowed
     bestMove = 0
     # go over all the possible next stats and find the max value
@@ -64,12 +66,12 @@ def abmin(gm, d, a, b):
     # print("a=",a)
     # print("b=",b)
 
-    if d == 0 or game.isFinished(gm):
+    if d == 0 or Game.isFinished(gm):
         # print("returns ", [game.value(gm), gm])
-        return [game.value(gm), 0]
+        return [Game.state_value(gm), 0]
     v = float("inf")
 
-    ns = game.getNext(gm)
+    ns = Game.getNext(gm)
     # print("next moves:", len(ns), " possible moves ")
     bestMove = 0
     for st in ns:

@@ -1,4 +1,5 @@
 import copy
+from termcolor import colored
 import alphaBetaPruning
 import random
 import numpy as np
@@ -15,10 +16,11 @@ HUMAN = 1  # Marks the human's cells on the board
 
 rows = 6
 columns = 7
-full_seq_val = (rows * (SIZE - 1)) + 1
+full_seq_val = (rows * (SIZE - 1)) + 1  # val for the heuristic function
 
 
-class game:
+# that class wll generate the game
+class Game:
     board = []
     size = rows * columns
     playTurn = HUMAN
@@ -35,26 +37,25 @@ class game:
     '''
 
 
-# create state
-def create(s):
-    # Returns an empty board. The human plays first.
+# create state Returns an empty board, The human plays first.
+def createInitState(state):
     # create the board
-    s.board = []
+    state.board = []
     for i in range(rows):
-        s.board = s.board + [columns * [0]]
+        state.board = state.board + [columns * [0]]
 
-    s.board = np.array(s.board)
+    state.board = np.array(state.board)
 
-    s.playTurn = HUMAN
-    s.size = rows * columns
-    s.val = 0.00001
+    state.playTurn = HUMAN
+    state.size = rows * columns
+    state.val = 0.00001
 
     # return [board, 0.00001, playTurn, r*c]     # 0 is TIE
 
 
 def cpy(s1):
     # construct a parent DataFrame instance
-    s2 = game()
+    s2 = Game()
     s2.playTurn = s1.playTurn
     s2.size = s1.size
     s2.board = copy.deepcopy(s1.board)
@@ -62,21 +63,22 @@ def cpy(s1):
     return s2
 
 
-def value(s):
-    # Returns the heuristic value of s
-    dr = [-SIZE + 1, -SIZE + 1, 0, SIZE - 1]  # the next lines compute the heuristic val.
-    dc = [0, SIZE - 1, SIZE - 1, SIZE - 1]
+def state_value(state):
+    # the next lines compute the heuristic val
+    diagonal_row = [-SIZE + 1, -SIZE + 1, 0,SIZE-1]
+    diagonal_column = [0, SIZE - 1, SIZE - 1, SIZE - 1]
     val = 0.00001
-    # counter the opportunities to full sequence (: missing one step to win)
+    # count the opportunities to full sequence (missing one step to win)
     victory_opportunities, loss_opportunities = 0, 0
 
     # pass all over the board
     for row in range(rows):
         for col in range(columns):
-            # check the four possible sequence
-            for i in range(len(dr)):
+            # check the four possible sequences
+            for i in range(len(diagonal_row)):
                 # check specific possible sequence
-                seq_value = checkSeq(s, row, col, row + dr[i], col + dc[i])
+                seq_value = checkSeq(state, row, col, row + diagonal_row[i], col + diagonal_column[i])
+
                 if seq_value in [LOSS, VICTORY]:
                     return seq_value
                 # if seq_value is one step from victory
@@ -92,19 +94,19 @@ def value(s):
         return PROMISE_VICTORY
     if loss_opportunities >= 2:
         return PROMISE_LOSS
-    if s.size == 0 and val not in [LOSS, VICTORY]:
+    if state.size == 0 and val not in [LOSS, VICTORY]:
         return TIE
     return val
 
 
-def checkSeq(s, r1, c1, r2, c2):
+def checkSeq(s, r1, c1, r2, c2):  # r2,c2 = end of the seq
     # r1, c1 are in the board. if r2,c2 not on board returns 0.
     # Checks the seq. from r1,c1 to r2,c2. If all X returns VICTORY. If all O returns LOSS.
     # If empty returns 0.00001. If no Os returns 1. If no Xs returns -1.
     if r2 < 0 or c2 < 0 or r2 >= rows or c2 >= columns:
         return 0  # r2, c2 are illegal
 
-    dr = (r2 - r1) // (SIZE - 1)  # the horizontal step from cell to cell
+    dr = (r2 - r1) // (SIZE - 1)  # the horizontal step from cell to cell == 1
     dc = (c2 - c1) // (SIZE - 1)  # the vertical step from cell to cell
 
     sum = 0
@@ -163,9 +165,9 @@ def printState(s):
         print("\n|", end="")
         for c in range(columns):
             if s.board[r][c] == COMPUTER:
-                print("X|", end="")
+                print(colored("X", 'red'), "|", sep="", end="")
             elif s.board[r][c] == HUMAN:
-                print("O|", end="")
+                print(colored("0", 'cyan'), "|", sep="", end="")
             else:
                 print(" |", end="")
     print()
@@ -175,7 +177,7 @@ def printState(s):
 
     print()
 
-    val = value(s)
+    val = state_value(s)
 
     if val == VICTORY:
         print("I won!")
@@ -187,11 +189,11 @@ def printState(s):
 
 def isFinished(s):
     # Seturns True iff the game ended
-    return value(s) in [LOSS, VICTORY, TIE] or s.size == 0
+    return state_value(s) in [LOSS, VICTORY, TIE] or s.size == 0
 
 
 def isHumTurn(s):
-    # Returns True iff it is the human's turn to play
+    # Return True iff it is the human's turn to play
     return s.playTurn == HUMAN
 
 
@@ -245,7 +247,7 @@ def inputRandom(s):
             makeMove(s,i)'''
     for i in range(0, columns):  # this simple agent always plays min
         tmp = cpy(s)
-        if (value(tmp) == LOSS):  # so a "loss" is a win for this side
+        if (state_value(tmp) == LOSS):  # so a "loss" is a win for this side
             makeMove(s, i)
     # If no obvious move, than move random
     flag = True
